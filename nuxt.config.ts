@@ -9,6 +9,5 @@ export default defineNuxtConfig({
   },
   app: {
     baseURL: "/lege/",
-    buildAssetsDir: "/_nuxt/",
   },
 });
