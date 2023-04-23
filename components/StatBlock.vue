@@ -19,37 +19,55 @@
         <p class="text-xl">Proficiency Bonus: {{ signedInt(proficiency) }}</p>
         <br />
         <div class="flex flex-row justify-between pr-5">
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('STR', strMod, 0)"
+          >
             <span>STR</span
             ><span class="text-sm">
               {{ statBlock.str }} ({{ signedInt(strMod) }})</span
             >
           </div>
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('DEX', dexMod, 0)"
+          >
             <span>DEX</span
             ><span class="text-sm">
               {{ statBlock.dex }} ({{ signedInt(dexMod) }})</span
             >
           </div>
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('CON', conMod, 0)"
+          >
             <span>CON</span
             ><span class="text-sm">
               {{ statBlock.con }} ({{ signedInt(conMod) }})</span
             >
           </div>
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('WIS', wisMod, 0)"
+          >
             <span>WIS</span
             ><span class="text-sm">
               {{ statBlock.wis }} ({{ signedInt(wisMod) }})</span
             >
           </div>
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('INT', intMod, 0)"
+          >
             <span>INT</span
             ><span class="text-sm">
               {{ statBlock.int }} ({{ signedInt(intMod) }})</span
             >
           </div>
-          <div class="flex flex-col text-center">
+          <div
+            class="flex flex-col text-center"
+            @click="savingThrow('CHA', chaMod, 0)"
+          >
             <span>CHA</span
             ><span class="text-sm">
               {{ statBlock.cha }} ({{ signedInt(chaMod) }})</span
@@ -101,19 +119,33 @@
 </template>
 <script setup lang="ts">
 import dayjs from "dayjs";
+import { Message } from "~/composables/useMessages";
 
 const props = defineProps<{ statBlock: any }>();
 const statBlock = computed(() => props.statBlock);
 
 const signedInt = (n: number) => (n >= 0 ? "+" : "") + n.toString();
+const messages = useMessages();
+const savingThrow = (modName: string, modValue: number, profLevel: number) => {
+  const savingThrowValue =
+    rolldX(20) + modValue + profLevel * proficiency.value;
+  const message: Message = {
+    sender: statBlock.value.name,
+    message: `${modName} Saving Throw, ${savingThrowValue}`,
+    isoTime: dayjs().toISOString(),
+  };
 
+  console.log("making a saving throw, are ye?");
+  messages.value.push(message);
+};
+const rolldX = (x: number) => Math.floor(Math.random() * x) + 1;
 const runAction = (action: Action) => {
-  const toHit = Math.floor(Math.random() * 20) + 1 + action.toHit;
+  const toHit = rolldX(20) + action.toHit;
   const [n, size] = action.damage?.split("d").map((x) => parseInt(x));
 
   let damage = action.damageMod;
   for (let i = 0; i < n; i++) {
-    damage += Math.floor(Math.random() * size) + 1;
+    damage += rolldX(size) + 1;
   }
 
   const message: Message = {
@@ -121,7 +153,6 @@ const runAction = (action: Action) => {
     message: `${action.name} ${toHit} to Hit, ${damage} ${action.damageType} damage`,
     isoTime: dayjs().toISOString(),
   };
-  const messages = useMessages();
   messages.value.push(message);
 };
 
