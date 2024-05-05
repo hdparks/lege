@@ -10,7 +10,7 @@ export const curfewDroid = {
   maxHitPoints: 40,
   speed: 25,
   proficientSkills: ["Athletics"],
-  equipedArmor: "Plasteel Plating",
+  equippedArmor: "Plasteel Plating",
   equipment: [
     {
       name: "Wrist-mounted Stun Baton",

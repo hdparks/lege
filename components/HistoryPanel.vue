@@ -7,6 +7,7 @@
       <Bars4Icon class="p-1"></Bars4Icon>
     </button>
     <div v-if="open" class="px-3 overflow-auto" ref="messagesContainerRef">
+      <button class="bg-slate-500 rounded m-3" @click="goblinFight">fight</button>
       <div v-for="message in messages">
         <span class="text-sm pr-2">
           {{ dayjs(message.isoTime).format("h:m") }}
@@ -29,7 +30,8 @@
 <script setup lang="ts">
 import dayjs from "dayjs";
 import { Bars4Icon } from "@heroicons/vue/24/solid";
-const open = ref<boolean>(false);
+import { getIsoTime } from "~/composables/isoTime";
+const open = ref<boolean>(true);
 const messages = useMessages();
 
 const messagesContainerRef = ref<InstanceType<typeof HTMLElement>>();
@@ -38,4 +40,12 @@ watch(messages.value, () => {
     messagesContainerRef.value?.lastElementChild?.scrollIntoView(false);
   });
 });
+async function goblinFight(){
+  const result = await useFetch('/api/goblinFight')
+  messages.value.push({
+    sender:"/api/goblinFight",
+    message: result.data.value?.result ?? "ERR",
+    isoTime: getIsoTime()
+  })
+}
 </script>

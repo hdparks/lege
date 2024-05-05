@@ -1,5 +1,5 @@
 <template>
-  <div class="w-1/2 h-full mx-auto rounded-2xl bg-slate-800">
+  <div class="w-1/2 min-h-full mx-auto rounded-2xl bg-slate-800">
     <div class="h-10 bg-slate-900 rounded-t-2xl"></div>
     <div class="p-5 wrap h-full gap-10 grid grid-cols-2">
       <div>
@@ -9,7 +9,7 @@
         <p>
           <span class="font-bold text-xl">Armor Class</span>
           {{ armorClass }}
-          <span v-if="equipedArmor">({{ equipedArmor?.name }})</span>
+          <span v-if="equippedArmor">({{ equippedArmor?.name }})</span>
         </p>
         <p><span class="font-bold text-xl">Hit Points</span> {{ hitPoints }}</p>
         <p>
@@ -20,7 +20,7 @@
         <br />
         <div class="flex flex-row justify-between pr-5">
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('STR', strMod, 0)"
           >
             <span>STR</span
@@ -29,7 +29,7 @@
             >
           </div>
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('DEX', dexMod, 0)"
           >
             <span>DEX</span
@@ -38,7 +38,7 @@
             >
           </div>
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('CON', conMod, 0)"
           >
             <span>CON</span
@@ -47,7 +47,7 @@
             >
           </div>
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('WIS', wisMod, 0)"
           >
             <span>WIS</span
@@ -56,7 +56,7 @@
             >
           </div>
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('INT', intMod, 0)"
           >
             <span>INT</span
@@ -65,7 +65,7 @@
             >
           </div>
           <div
-            class="flex flex-col text-center"
+            class="flex flex-col text-center border-2 border-slate-500 rounded-md p-1"
             @click="savingThrow('CHA', chaMod, 0)"
           >
             <span>CHA</span
@@ -84,23 +84,25 @@
         <hr class="my-2 mr-10" />
 
         <template v-for="(action, i) in actions" :key="i">
-          <div
-            class="rounded-lg border-2 border-slate-500 p-3 mb-2"
-            @click="runAction(action)"
-          >
-            <p class="font-bold">{{ action.name }}</p>
-            <p>{{ action.type }}</p>
-            <p>Range: {{ action.range }}</p>
-            <p>{{ signedInt(action.toHit) }} to hit</p>
-            <p>
-              {{ action.damage }} + {{ action.damageMod }} ({{
-                action.damageType
-              }})
-            </p>
-          </div>
-          <br />
+          <ActionCard :action="action"></ActionCard>
         </template>
       </div>
+      <div>
+        <h1 class="font-thin uppercase text-2xl">Bonus Actions</h1>
+        <hr class="my-2 mr-10" />
+        <template v-for="(action, i) in bonusActions" :key="i">
+          <ActionCard :action="action"></ActionCard>
+        </template>
+      </div>
+      <div>
+        <h1 class="font-thin uppercase text-2xl">Reactions</h1>
+        <hr class="my-2 mr-10" />
+
+        <template v-for="(action, i) in reactions" :key="i">
+          <ActionCard :action="action"></ActionCard>
+        </template>
+      </div>
+
       <div>
         <h1 class="font-thin uppercase text-2xl mb-2">Equipment</h1>
         <hr class="my-2 mr-10" />
@@ -119,13 +121,18 @@
 </template>
 <script setup lang="ts">
 import dayjs from "dayjs";
+import { Action } from "~/composables/Action";
+import { Equipment } from "~/composables/Equipment";
+import { StatBlock } from "~/composables/StatBlock";
 import { Message } from "~/composables/useMessages";
+import { match, P } from "ts-pattern";
 
-const props = defineProps<{ statBlock: any }>();
+const props = defineProps<{ statBlock: StatBlock }>();
 const statBlock = computed(() => props.statBlock);
+provide("statBlock", statBlock);
 
-const signedInt = (n: number) => (n >= 0 ? "+" : "") + n.toString();
 const messages = useMessages();
+
 const savingThrow = (modName: string, modValue: number, profLevel: number) => {
   const savingThrowValue =
     rolldX(20) + modValue + profLevel * proficiency.value;
@@ -135,24 +142,6 @@ const savingThrow = (modName: string, modValue: number, profLevel: number) => {
     isoTime: dayjs().toISOString(),
   };
 
-  console.log("making a saving throw, are ye?");
-  messages.value.push(message);
-};
-const rolldX = (x: number) => Math.floor(Math.random() * x) + 1;
-const runAction = (action: Action) => {
-  const toHit = rolldX(20) + action.toHit;
-  const [n, size] = action.damage?.split("d").map((x) => parseInt(x));
-
-  let damage = action.damageMod;
-  for (let i = 0; i < n; i++) {
-    damage += rolldX(size) + 1;
-  }
-
-  const message: Message = {
-    sender: statBlock.value.name,
-    message: `${action.name} ${toHit} to Hit, ${damage} ${action.damageType} damage`,
-    isoTime: dayjs().toISOString(),
-  };
   messages.value.push(message);
 };
 
@@ -165,18 +154,9 @@ const wisMod = computed(() => Math.floor((statBlock.value.wis - 10) / 2));
 const intMod = computed(() => Math.floor((statBlock.value.int - 10) / 2));
 const chaMod = computed(() => Math.floor((statBlock.value.cha - 10) / 2));
 const armorClass = computed(
-  () => dexMod.value + (equipedArmor.value?.baseArmor ?? 10)
+  () => dexMod.value + (equippedArmor.value?.baseArmor ?? 10)
 );
 
-type Action = {
-  name: string;
-  range: string;
-  type: string;
-  toHit: number;
-  damage: string;
-  damageMod: number;
-  damageType: string;
-};
 const modValueMap = new Map(
   Object.entries({
     str: strMod,
@@ -187,29 +167,57 @@ const modValueMap = new Map(
     cha: chaMod,
   })
 );
+
+const parseAction = (action: Action, defaultName: string): Action => {
+  return match(action)
+    .with({ type: "attack" }, (action) => {
+      const mod = modValueMap.get(action.abilityModName);
+      return {
+        ...action,
+        toHit: proficiency.value + (mod?.value ?? 0),
+        name: action.name ?? defaultName,
+        damageMod: proficiency.value + (mod?.value ?? 0),
+      };
+    })
+    .with({ type: "savingThrow" }, (action) => {
+      const mod = modValueMap.get(action.saveDCAbilityModName);
+      return {
+        ...action,
+        damageMod: proficiency.value + (mod?.value ?? 0),
+        saveDC: 8 + proficiency.value + (mod?.value ?? 0),
+      };
+    })
+    .otherwise((action) => action);
+};
 const actions = computed<Action[]>(() =>
   statBlock.value.equipment
     .filter((item: any) => "actions" in item)
-    .map((item: any) =>
-      item.actions.map((a: any) => {
-        const mod = modValueMap.get(a.mod) ?? strMod;
-        return {
-          toHit: proficiency.value + mod.value,
-          type: a.type,
-          range: a.range,
-          name: a.name ?? item.name,
-          damage: a.damage,
-          damageMod: proficiency.value + mod.value,
-          damageType: a.damageType,
-        };
-      })
+    .map((item: any) => item.actions.map((a: any) => parseAction(a, item.name)))
+    .flat()
+);
+
+const bonusActions = computed<Action[]>(() =>
+  // Get everything coming from equipment
+  statBlock.value.equipment
+    .filter((item: Equipment) => "bonusActions" in item)
+    .map((item: Equipment) =>
+      item.bonusActions.map((a: Action) => parseAction(a, item.name))
     )
     .flat()
 );
 
-const equipedArmor = computed<{ name: string; baseArmor: number }>(() =>
+const reactions = computed<Action[]>(() => {
+  const equipmentReactions = statBlock.value.equipment
+    .filter((item: Equipment) => "reactions" in item)
+    .map((item: Equipment) =>
+      item.reactions.map((action: Action) => parseAction(action, item.name))
+    )
+    .flat();
+  return equipmentReactions;
+});
+const equippedArmor = computed<Equipment | undefined>(() =>
   statBlock.value.equipment.find(
-    (item: any) => item.name == statBlock.value.equipedArmor
+    (item: Equipment) => item.name == statBlock.value.equippedArmor
   )
 );
 </script>

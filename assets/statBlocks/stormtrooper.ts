@@ -1,4 +1,6 @@
-export const stormtrooper = {
+import { StatBlock } from "~/composables/StatBlock";
+
+export const stormtrooper: StatBlock = {
   name: "Stormtrooper",
   str: 14,
   dex: 12,
@@ -10,18 +12,47 @@ export const stormtrooper = {
   maxHitPoints: 35,
   speed: 30,
   proficientSkills: ["Athletics", "Insight"],
-  equipedArmor: "Plasteel Armor",
+  equippedArmor: "Plasteel Armor",
   equipment: [
     {
+      name: "Personal Shield",
+      actions: [],
+      reactions: [],
+      bonusActions: [],
+      description:
+        "Expend one charge to gain +5 AC until the start of your next turn", // Hey, this could get cool as soon as we integrate turns n' stuff!
+    },
+    {
+      name: "Concussion Grenade",
+      description: "Enough to get them thinking...",
+      bonusActions: [
+        {
+          name: "Concussion Grenade",
+          type: "savingThrow",
+          damageRoll: "2d6",
+          savingAbilityModName: "dex",
+          saveDC: 14,
+          saveDCAbilityModName: "str",
+          damageMod: 4,
+          damageType: "energy",
+          range: "30 ft.",
+          radius: "20 ft.",
+        },
+      ],
+    },
+    {
       name: "Blaster",
+      description: "Times have changed",
       actions: [
         {
+          name: "Blaster",
           type: "attack",
-          range: "30 ft.",
-          toHitBonus: 0,
-          mod: "str",
+          abilityModName: "str",
+          toHitMod: 0,
+          damageRoll: "2d6",
+          damageMod: 3,
           damageType: "energy",
-          damage: "2d6",
+          range: "30 ft.",
         },
       ],
       descriptionHTML:
@@ -31,12 +62,14 @@ export const stormtrooper = {
       name: "Stun Baton",
       actions: [
         {
+          name: "Stun Baton",
           type: "attack",
           range: "melee",
-          toHitBonus: 0,
-          mod: "str",
+          toHitMod: 0,
+          abilityModName: "str",
           damageType: "energy",
-          damage: "1d8",
+          damageMod: 3,
+          damageRoll: "1d8",
         },
       ],
       description: "stic go brrrrrrrrr",
@@ -44,6 +77,7 @@ export const stormtrooper = {
     {
       name: "Plasteel Armor",
       baseArmor: 12,
+      description: "Hard to miss",
     },
   ],
 };

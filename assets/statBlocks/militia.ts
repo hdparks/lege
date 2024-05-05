@@ -1,4 +1,6 @@
-export const militia = {
+import { StatBlock } from "~/composables/StatBlock";
+
+export const militia: StatBlock = {
   name: "Militia",
   str: 12,
   dex: 14,
@@ -13,14 +15,17 @@ export const militia = {
   equipment: [
     {
       name: "Blaster Pistol",
+      description: "Reach for the skies.",
       actions: [
         {
+          name: "Blaster Pistol",
           type: "attack",
           range: "30 ft./60 ft.",
-          toHitBonus: 0,
-          mod: "dex",
+          toHitMod: 0,
+          abilityModName: "dex",
           damageType: "energy",
-          damage: "2d4",
+          damageRoll: "2d4",
+          damageMod: 0,
         },
       ],
     },
