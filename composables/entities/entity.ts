@@ -1,37 +1,28 @@
-import { Position } from "../components/position";
-import { Classes } from "../components/classes";
-import { SecondaryRange } from "../components/range";
-import { ToHitBonus } from "../components/toHitBonus";
-import { WeaponProficiencies } from "../components/weaponProficiencies";
-import { WeaponType } from "../components/weaponType";
-import { Range} from "../components/range";
-import { Dex } from "../components/dex";
-import { Equipped } from "../components/equipped";
-import { Equipper } from "../components/eqipper";
-import { ArmorClassModifier } from "../components/armorClassModifier";
-import { HitPoints } from "../components/hitPoints";
-import { WeaponBaseDamageRoll } from "../components/weaponBaseDamageRoll";
-import { CanRollDeathSavingThrows, DeathSavingThrows } from "../components/deathSavingThrows";
-import { Unconscious } from "../components/unconscious";
-import { Dead } from "../components/dead";
+import { ArmorClass } from "../rules/ArmorClass";
+import { DexMod } from "../rules/DexMod";
+import { DexScore } from "../rules/DexScore";
+import { Equipped } from "../rules/Equipped";
+import { Equipper } from "../rules/Equipper";
+import { HitPointMax } from "../rules/HitPointMax";
+import { HitPoints } from "../rules/HitPoints";
+import { LightArmorProficiency } from "../rules/LightArmorProficiency";
+import { OperatorClass } from "../rules/OperatorClass";
+import { Shield } from "../rules/Shield";
+import { TempHitPoints } from "../rules/TempHitPoints";
 
 export type Entity = {
-  id: string; 
-  weaponProficiencies?:WeaponProficiencies;
-  weaponType?:WeaponType;
-  toHitBonus?:ToHitBonus;
-  classes?:Classes;
-  range?:Range;
-  secondaryRange?:SecondaryRange;
-  position?:Position;
-  dex?:Dex;
-  equipper?:Equipper;
-  equipped?:Equipped;
-  armorClassModifier?:ArmorClassModifier;
-  hitPoints?:HitPoints;
-  weaponBaseDamageRoll?:WeaponBaseDamageRoll;  
-  canRollDeathSavingThrows?:CanRollDeathSavingThrows;
-  deathSavingThrows?:DeathSavingThrows
-  unconscious?:Unconscious;
-  dead?:Dead;
+  id?: EntityId;
+  ArmorClass?:ArmorClass;
+  DexScore?:DexScore;
+  DexMod?:DexMod;
+  Equipped?:Equipped;
+  Equipper?:Equipper;
+  HitPointMax?: HitPointMax;
+  HitPoints?: HitPoints;
+  LightArmorProficiency?: LightArmorProficiency;
+  OperatorClass?:OperatorClass;
+  Sheild?:Shield;
+  TempHitPoints?: TempHitPoints;  
 }
+
+export type EntityId = string

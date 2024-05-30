@@ -1,72 +1,62 @@
+import { ExclamationTriangleIcon } from "@heroicons/vue/24/solid";
 import { Entity } from "../entities/entity";
-import getEffectiveWeaponProficiency from "../systems/getEffectiveWeaponProficiency";
-import getRandn from "../systems/getRandn";
-import runEquipEntity from "../systems/runEquipEntity";
-import runAttack from "../systems/runAttack";
-import getMaxHitPoints from "../systems/getMaxHitPoints";
+import { ApplyArmorClass } from "../rules/ArmorClass";
+import { ApplyDexMod } from "../rules/DexMod";
+import { ApplyHitPointMax } from "../rules/HitPointMax";
+import { ApplyLightArmorProficiency } from "../rules/LightArmorProficiency";
+
+export const proxyHandler = {
+  get(target:any, key:string) {
+    if (typeof target[key] === 'object' && target[key] !== null){
+      return new Proxy(target[key], proxyHandler);
+    }
+    return target[key]
+  },
+  set(target:any, prop:string, value:any) {
+    console.log(`changed ${prop} from ${target[prop]} to ${value}`)
+    target[prop] = value;
+    return true
+  }
+}
+
+export function asProxy(obj) {
+  return new Proxy(obj, proxyHandler)
+}
+
+
 
 export function start(){
   const entities:Entity[] = []
 
-  const player: Entity = {
+  let player: Entity = {
     id: "player",
-    dex: 12,
-    classes: [{
-      type: "rogue",
-      level: 1
-    }],
-    weaponProficiencies: ["martial"],
-    position: { x:0,y:0,z:0 },
-  }
-  player.hitPoints = {
-    hitPoints: getMaxHitPoints(player),
-    tempHitPoints: 0
-  }
-  const sword: Entity = {
-    id: "player's sword",
-    range: 5,
-    weaponType: "martial",
-    weaponBaseDamageRoll: (attacker:Entity) => {
-      const profBonus = getEffectiveWeaponProficiency(attacker, sword)
-      return [{dmg:getRandn(6) + profBonus, type:"kinetic"}]
-    },
+    DexScore: 12,
+    OperatorClass: {level:6}
   }
 
-  const goblin: Entity = {
-    id: "gobolin",
-    dex: 10,
-    classes: [{
-      type:"fighter",
-      level:1
-    }],
-    position: {x:0, y:0, z:0},
-  };
-  goblin.hitPoints = {
-    hitPoints: getMaxHitPoints(goblin),
-    tempHitPoints: 0,
+  let shield: Entity = {
+    id: "shield",
+    Sheild: {acBonus: 2},
   }
-
-  const bow: Entity = {
-    id:"gobbo short-bow",
-    weaponType: "simple",
-    range: 30,
-    secondaryRange: 60,
-    weaponBaseDamageRoll: (attacker: Entity) => {
-      const profBonus = getEffectiveWeaponProficiency(attacker, bow)
-      return [{dmg:getRandn(6) + profBonus, type: "kinetic"}]
-    }
+  let playerEquippedShield: Entity = {
+    id: "eq",
+    Equipped: shield.id,
+    Equipper: player.id
   }
- 
-  runEquipEntity(player, sword, entities)
-  runEquipEntity(goblin, bow, entities)
+  player = asProxy(player)
+  entities.push(player)
+  entities.push(shield)
+  entities.push(playerEquippedShield)
 
-  let rounds = 0
-  while(player.dead == null && goblin.dead == null && rounds < 100) {
-    rounds += 1
-    console.log(`round: ${rounds}. player.hp:${player.hitPoints?.hitPoints}, goblin.hp:${goblin.hitPoints?.hitPoints}. FIGHT`)
-    runAttack(player, sword, goblin, entities)
-    runAttack(goblin, bow, player, entities)
-  }
+  runRules(entities)
 
-  return player.dead == null ? "Player won!" : "Player succumbed to their injuries...";
+  return entities
+}
+
+
+function runRules(entities: Entity[]){
+  ApplyDexMod(entities)
+  ApplyArmorClass(entities)  
+  ApplyHitPointMax(entities)
+  ApplyLightArmorProficiency(entities)
 }
